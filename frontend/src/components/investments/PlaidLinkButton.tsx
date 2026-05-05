@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { usePlaidLink } from "react-plaid-link";
+import { usePlaidLink, PlaidLinkOnSuccess } from "react-plaid-link";
 import { Link as LinkIcon, RefreshCw } from "lucide-react";
 import { exchangePlaidToken, getPlaidLinkToken, syncPlaidHoldings } from "@/lib/api";
 
@@ -20,8 +20,8 @@ export default function PlaidLinkButton({ onSuccess }: Props) {
       .catch(() => setError("Could not initialize brokerage connection."));
   }, []);
 
-  const handleSuccess = useCallback(
-    async (public_token: string, metadata: { institution?: { name?: string } }) => {
+  const handleSuccess = useCallback<PlaidLinkOnSuccess>(
+    async (public_token, metadata) => {
       setSyncing(true);
       setError("");
       try {
