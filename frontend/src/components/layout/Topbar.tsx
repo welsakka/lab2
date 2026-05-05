@@ -1,8 +1,25 @@
 "use client";
 
 import { Bell, Search } from "lucide-react";
+import { useEffect } from "react";
+import { useUserStore } from "@/lib/user-store";
 
 export default function Topbar() {
+  const { user, fetch } = useUserStore();
+
+  useEffect(() => {
+    fetch();
+  }, [fetch]);
+
+  const initials = user
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "?";
+
   return (
     <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 flex-shrink-0">
       <div className="flex items-center gap-3 flex-1 max-w-sm">
@@ -18,8 +35,11 @@ export default function Topbar() {
           <Bell className="h-4 w-4 text-gray-500" />
           <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />
         </button>
-        <div className="h-7 w-7 rounded-full bg-brand-600 flex items-center justify-center text-white text-xs font-semibold">
-          A
+        <div
+          className="h-7 w-7 rounded-full bg-brand-600 flex items-center justify-center text-white text-xs font-semibold cursor-default"
+          title={user?.name ?? ""}
+        >
+          {initials}
         </div>
       </div>
     </header>

@@ -1,6 +1,37 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { login } from "@/lib/api";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") ?? "/dashboard";
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await login(email, password);
+      router.push(redirect);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
+        "Something went wrong. Please try again.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
@@ -9,11 +40,19 @@ export default function LoginPage() {
           <h1 className="mt-6 text-2xl font-bold text-gray-900">Welcome back</h1>
           <p className="text-gray-500 mt-1 text-sm">Sign in to your account</p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 space-y-5">
+          {error && (
+            <div className="rounded-lg bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               placeholder="ahmed@example.com"
               className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             />
@@ -22,30 +61,30 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
             <input
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
               placeholder="••••••••"
               className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             />
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-gray-600">
-              <input type="checkbox" className="rounded" />
-              Remember me
-            </label>
+          <div className="flex items-center justify-end text-sm">
             <Link href="/forgot-password" className="text-brand-600 hover:underline">Forgot password?</Link>
           </div>
-          <Link
-            href="/dashboard"
-            className="block w-full text-center rounded-lg bg-brand-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
+          <button
+            type="submit"
+            disabled={loading}
+            className="block w-full text-center rounded-lg bg-brand-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
-            Sign in
-          </Link>
+            {loading ? "Signing in…" : "Sign in"}
+          </button>
           <p className="text-center text-sm text-gray-500">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="text-brand-600 hover:underline font-medium">
               Create one
             </Link>
           </p>
-        </div>
+        </form>
       </div>
     </div>
   );

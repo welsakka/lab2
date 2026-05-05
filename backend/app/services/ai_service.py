@@ -1,12 +1,13 @@
 """
 AI Financial Coach service — powered by Claude.
 
-Uses prompt caching for the system prompt (large, rarely changes) to
+Uses prompt caching on the system prompt (large, rarely changes) to
 reduce latency and cost on repeated calls. Streams responses via SSE.
 """
 
 import json
 from typing import AsyncGenerator, List
+
 import anthropic
 
 from app.config import settings
@@ -34,25 +35,47 @@ Behavioral guidelines:
 
 Disclaimer: append "Not financial advice — consult a qualified advisor for major decisions." only when the user asks for specific investment or legal advice."""
 
-client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+_client: anthropic.Anthropic | None = None
+
+
+def _get_client() -> anthropic.Anthropic:
+    global _client
+    if _client is None:
+        _client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    return _client
 
 
 async def stream_coach_response(
     messages: List[dict],
 ) -> AsyncGenerator[str, None]:
-    with client.messages.stream(
-        model="claude-sonnet-4-6",
-        max_tokens=1024,
-        system=[
-            {
-                "type": "text",
-                "text": SYSTEM_PROMPT,
-                "cache_control": {"type": "ephemeral"},
-            }
-        ],
-        messages=messages,
-    ) as stream:
-        for text in stream.text_stream:
-            payload = json.dumps({"text": text})
-            yield f"data: {payload}\n\n"
-    yield "data: [DONE]\n\n"
+    try:
+        client = _get_client()
+        with client.messages.stream(
+            model="claude-sonnet-4-6",
+            max_tokens=1024,
+            system=[
+                {
+                    "type": "text",
+                    "text": SYSTEM_PROMPT,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            messages=messages,
+        ) as stream:
+            for text in stream.text_stream:
+                yield f"data: {json.dumps({'text': text})}\n\n"
+
+    except anthropic.AuthenticationError:
+        yield f"data: {json.dumps({'error': 'AI service unavailable — API key not configured.'})}\n\n"
+
+    except anthropic.RateLimitError:
+        yield f"data: {json.dumps({'error': 'AI rate limit reached — please try again in a moment.'})}\n\n"
+
+    except anthropic.APIStatusError as e:
+        yield f"data: {json.dumps({'error': f'AI service error ({e.status_code}). Please try again.'})}\n\n"
+
+    except Exception:
+        yield f"data: {json.dumps({'error': 'An unexpected error occurred. Please try again.'})}\n\n"
+
+    finally:
+        yield "data: [DONE]\n\n"

@@ -26,5 +26,6 @@ class Holding(Base):
     status = Column(SAEnum(HalalStatus), default=HalalStatus.unknown)
     purification_per_share = Column(Float, default=0.0)
     last_screened_at = Column(DateTime(timezone=True), nullable=True)
+    plaid_item_id = Column(UUID(as_uuid=True), ForeignKey("plaid_items.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

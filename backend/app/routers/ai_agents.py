@@ -1,8 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List
 
+from app.dependencies import require_plan
+from app.models.user import PlanTier, User
 from app.services.ai_service import stream_coach_response
 
 router = APIRouter()
@@ -18,7 +20,10 @@ class CoachRequest(BaseModel):
 
 
 @router.post("/coach/stream")
-async def coach_stream(req: CoachRequest):
+async def coach_stream(
+    req: CoachRequest,
+    current_user: User = Depends(require_plan(PlanTier.essential, PlanTier.premium, PlanTier.family)),
+):
     messages = [{"role": m.role, "content": m.content} for m in req.messages]
     return StreamingResponse(
         stream_coach_response(messages),

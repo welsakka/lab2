@@ -9,6 +9,9 @@ services:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://backend:8000
+      - NEXT_PUBLIC_STRIPE_PRICE_ESSENTIAL=${STRIPE_PRICE_ESSENTIAL}
+      - NEXT_PUBLIC_STRIPE_PRICE_PREMIUM=${STRIPE_PRICE_PREMIUM}
+      - NEXT_PUBLIC_STRIPE_PRICE_FAMILY=${STRIPE_PRICE_FAMILY}
     depends_on:
       - backend
     volumes:
@@ -25,6 +28,17 @@ services:
     environment:
       - DATABASE_URL=postgresql://halal:halal@db:5432/halal_finance
       - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - FRONTEND_URL=http://localhost:3000
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - PLAID_CLIENT_ID=${PLAID_CLIENT_ID}
+      - PLAID_SECRET=${PLAID_SECRET}
+      - PLAID_ENV=${PLAID_ENV:-sandbox}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_PRICE_ESSENTIAL=${STRIPE_PRICE_ESSENTIAL}
+      - STRIPE_PRICE_PREMIUM=${STRIPE_PRICE_PREMIUM}
+      - STRIPE_PRICE_FAMILY=${STRIPE_PRICE_FAMILY}
     depends_on:
       - db
       - redis

@@ -3,8 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.config import settings
-from app.routers import auth, screening, portfolio, zakat, banking, planning, ai_agents
-
+from app.routers import auth, screening, portfolio, zakat, banking, planning, ai_agents, plaid, stripe
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,6 +32,8 @@ app.include_router(zakat.router, prefix="/api/v1/zakat", tags=["zakat"])
 app.include_router(banking.router, prefix="/api/v1/banking", tags=["banking"])
 app.include_router(planning.router, prefix="/api/v1/planning", tags=["planning"])
 app.include_router(ai_agents.router, prefix="/api/v1/ai", tags=["ai"])
+app.include_router(plaid.router, prefix="/api/v1/plaid", tags=["plaid"])
+app.include_router(stripe.router, prefix="/api/v1/stripe", tags=["stripe"])
 
 
 @app.get("/health")

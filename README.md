@@ -65,6 +65,16 @@ Frontend runs at `http://localhost:3000`
 API runs at `http://localhost:8000`  
 API docs at `http://localhost:8000/docs`
 
+**Run DB migrations:**
+```bash
+cd backend && alembic upgrade head
+```
+
+**Test Stripe webhooks locally:**
+```bash
+stripe listen --forward-to localhost:8000/api/v1/stripe/webhook
+```
+
 ## Project Structure
 
 ```
